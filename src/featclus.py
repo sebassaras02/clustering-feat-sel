@@ -2,9 +2,11 @@ import numpy as np
 import pandas as pd
 from typing import List
 from copy import deepcopy
-from sklearn.cluster import KMeans, DBSCAN
-from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
+from sklearn.metrics import silhouette_score
 
 class FeatureSelection:
     def __init__(self, data: pd.DataFrame, shifts: List = [5, 10, 50]):
@@ -12,8 +14,9 @@ class FeatureSelection:
         self.shifts = shifts
         self.model = Pipeline(
             steps=[
-                ("scaler", StandardScaler()),
-                ("kmeans", DBSCAN())
+                ("scaler", MinMaxScaler()),
+                ("pca", PCA(0.8)),
+                ("clustering", DBSCAN())
             ]
         )
         self.columns = data.columns
@@ -38,8 +41,9 @@ class FeatureSelection:
         return scores
                     
     def _get_score(self, df):
-        self.model.fit(df)
-        return self.model.inertia_
+        labels = self.model.fit_predict(df)
+        score = silhouette_score(X=df, labels=labels)
+        return score
     
     def get_metrics(self):
         scores_shifted = self._train_model()
@@ -47,7 +51,7 @@ class FeatureSelection:
         final_values = {}
         for key, value in scores_shifted.items():
             final_values[key] = np.abs(original_score-value)
-        df = pd.DataFrame(final_values.values(), columns=["Importance"], index=final_values.keys())
+        df = pd.DataFrame(final_values.values(), columns=["Importance"], index=final_values.keys()).sort_values("Importance", ascending=False)
         return df
             
     
