@@ -24,10 +24,11 @@ class FeatureSelection:
             The data to be used in the model.
         shifts: List
             The shifts to be used in the data.
-    
+
     Returns:
         pd.DataFrame: A DataFrame with the importance of each feature sorted.
     """
+
     def __init__(self, data: pd.DataFrame, shifts: List = [5, 10, 50]):
         self.data = data
         self.shifts = shifts
