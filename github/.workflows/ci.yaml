@@ -1,0 +1,61 @@
+name: Continuous Integration Workflow
+run-name: CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: write
+
+jobs:
+  code_linting:
+    runs-on: ubuntu-latest
+    outputs:
+      linting_failed: ${{ steps.linting.outcome == 'failure' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run Ruff Linting
+        id: linting
+        run: |
+          ruff check . 
+        continue-on-error: true
+
+  code_formating:
+    runs-on: ubuntu-latest
+    needs: code_linting
+    if: needs.code_linting.outputs.linting_failed == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install ruff-format
+        run: pip install ruff
+
+      - name: Format code with Ruff
+        run: ruff format .
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto-format code with Ruff"
+          branch: ${{ github.head_ref }}
+
+  security_scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: [code_linting, code_formating]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: mdegis/bandit-action@v1.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: "."
+          level: high
+          confidence: high
+          exit_zero: true
