@@ -91,8 +91,6 @@ class FeatureSelection:
                 for df in df_to_test:
                     values.append(self._get_score(df=df))
                 scores[col] = np.mean(values)
-            self.cache_history = 1
-            self.results = scores
             return scores
         else:
             dataframes = self._shift_data_mc(df=self.data)
@@ -102,8 +100,6 @@ class FeatureSelection:
             scores = {col: [] for col in self.columns}
             for (col, _), score in zip(dataframes, results):
                 scores[col].append(score)
-            self.cache_history = 1
-            self.results = scores
             return {col: np.mean(scores[col]) for col in scores}
 
     def _process_columns(self, col):
@@ -136,15 +132,19 @@ class FeatureSelection:
         df = pd.DataFrame(
             final_values.values(), columns=["Importance"], index=final_values.keys()
         ).sort_values("Importance", ascending=False)
+        self.cache_history = 1
+        self.results = df
         return df
 
-    def plot_results(self, n_features: None):
+    def plot_results(self, n_features=None):
         """
         This function plots the results of the model.
         """
         if self.cache_history == 0:
             self.get_metrics()
         data = self.results
+        if n_features:
+            data = data[:n_features]
         fig = px.bar(
             data,
             y="Importance",
