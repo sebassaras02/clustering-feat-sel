@@ -46,7 +46,9 @@ class FeatureSelection:
         self.columns = data.columns
         self.n_jobs = n_jobs
 
-    def _shift_data_sc(self, df: pd.DataFrame, target_column: str) -> List[pd.DataFrame]:
+    def _shift_data_sc(
+        self, df: pd.DataFrame, target_column: str
+    ) -> List[pd.DataFrame]:
         """
         This function creates different dataframes based on different shifts.
         """
@@ -57,7 +59,7 @@ class FeatureSelection:
             df1 = df1.dropna()
             data_shifted.append(df1)
         return data_shifted
-        
+
     def _shift_data_mc(self, df: pd.DataFrame) -> pd.DataFrame:
         data_shifted = []
         for col in self.columns:
@@ -65,9 +67,10 @@ class FeatureSelection:
                 df1 = deepcopy(self.data)
                 df1[col] = df1[col].shift(value)
                 df1 = df1.dropna()
-                data_shifted.append((col, df1))  # Almacena la columna junto con el DataFrame
+                data_shifted.append(
+                    (col, df1)
+                )  # Almacena la columna junto con el DataFrame
         return data_shifted
-
 
     def _train_model(self) -> dict:
         """
@@ -84,12 +87,14 @@ class FeatureSelection:
             return scores
         else:
             dataframes = self._shift_data_mc(df=self.data)
-            results = Parallel(n_jobs=self.n_jobs)(delayed(self._get_score)(df) for _, df in dataframes)
+            results = Parallel(n_jobs=self.n_jobs)(
+                delayed(self._get_score)(df) for _, df in dataframes
+            )
             scores = {col: [] for col in self.columns}
             for (col, _), score in zip(dataframes, results):
                 scores[col].append(score)
             return {col: np.mean(scores[col]) for col in scores}
-    
+
     def _process_columns(self, col):
         df_to_test = self._shift_data(df=self.data, target_column=col)
         values = []
@@ -118,7 +123,7 @@ class FeatureSelection:
             final_values.values(), columns=["Importance"], index=final_values.keys()
         ).sort_values("Importance", ascending=False)
         return df
-    
+
     def plot_results(n_features: None):
         """
         This function plots the results of the model.
