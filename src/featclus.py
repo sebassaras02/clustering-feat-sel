@@ -1,7 +1,11 @@
+from joblib import Parallel, delayed
+
 import numpy as np
 import pandas as pd
+
 from typing import List
 from copy import deepcopy
+
 from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import PCA
@@ -29,7 +33,7 @@ class FeatureSelection:
         pd.DataFrame: A DataFrame with the importance of each feature sorted.
     """
 
-    def __init__(self, data: pd.DataFrame, shifts: List = [5, 10, 50]):
+    def __init__(self, data: pd.DataFrame, shifts: List = [5, 10, 50], n_jobs:int = -1):
         self.data = data
         self.shifts = shifts
         self.model = Pipeline(
@@ -40,6 +44,7 @@ class FeatureSelection:
             ]
         )
         self.columns = data.columns
+        self.n_jobs = n_jobs
 
     def _shit_data(self, df: pd.DataFrame, target_column: str) -> List[pd.DataFrame]:
         """
@@ -53,28 +58,44 @@ class FeatureSelection:
             data_shifted.append(df1)
         return data_shifted
 
-    def _train_model(self):
+    def _train_model(self) -> dict:
         """
-        This function trains a model for each column with a different data shift.
+        This function trains the models needed in a parallelized way.
         """
-        scores = {}
-        for col in self.columns:
-            df_to_test = self._shit_data(df=self.data, target_column=col)
-            values = []
-            for df in df_to_test:
-                values.append(self._get_score(df=df))
-            scores[col] = np.mean(values)
+        if self.n_jobs == 1:
+            scores = {col: self._evaluate_feature(col) for col in self.columns}
+        else:
+            scores = Parallel(n_jobs=self.n_jobs)(
+                delayed(self._evaluate_feature)(col) for col in self.columns
+            )
+            scores = dict(zip(self.columns, scores))
         return scores
-
-    def _get_score(self, df):
+    
+    def _evaluate_feature(self, col: str) -> float:
         """
-        This function calculates the silhouete score for each model created.
+        This function applies the shifts in a parallelized way.
+        """
+        df_to_test = self._shit_data(df=self.data, target_column=col)
+        
+        if self.n_jobs == 1:
+            values = [self._get_score(df) for df in df_to_test]
+        else:
+            values = Parallel(n_jobs=self.n_jobs)(
+                delayed(self._get_score)(df) for df in df_to_test
+            )
+        return np.mean(values)
+    
+    def _get_score(self, df: pd.DataFrame) -> float:
+        """
+        This function calculates the score of the clustering for each variable
         """
         labels = self.model.fit_predict(df)
+        print(len(labels))
+        print(len())
         score = silhouette_score(X=df, labels=labels)
         return score
 
-    def get_metrics(self):
+    def get_metrics(self) -> pd.DataFrame:
         """
         This function saves the results of the metrics and sorts the results.
         """
