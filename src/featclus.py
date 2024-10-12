@@ -12,6 +12,8 @@ from sklearn.metrics import silhouette_score
 
 from joblib import Parallel, delayed
 
+import plotly.express as px
+
 
 class FeatureSelection:
     """
@@ -45,6 +47,8 @@ class FeatureSelection:
         )
         self.columns = data.columns
         self.n_jobs = n_jobs
+        self.cache_history = 0
+        self.results = None
 
     def _shift_data_sc(self, df: pd.DataFrame, target_column: str) -> List[pd.DataFrame]:
         """
@@ -59,6 +63,9 @@ class FeatureSelection:
         return data_shifted
         
     def _shift_data_mc(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        This function creates different dataframes based on different shifts for multi-threading.
+        """
         data_shifted = []
         for col in self.columns:
             for value in self.shifts:
@@ -81,6 +88,8 @@ class FeatureSelection:
                 for df in df_to_test:
                     values.append(self._get_score(df=df))
                 scores[col] = np.mean(values)
+            self.cache_history = 1
+            self.results = scores
             return scores
         else:
             dataframes = self._shift_data_mc(df=self.data)
@@ -88,9 +97,14 @@ class FeatureSelection:
             scores = {col: [] for col in self.columns}
             for (col, _), score in zip(dataframes, results):
                 scores[col].append(score)
+            self.cache_history = 1
+            self.results = scores
             return {col: np.mean(scores[col]) for col in scores}
     
     def _process_columns(self, col):
+        """
+        This function processes the columns of the data.
+        """
         df_to_test = self._shift_data(df=self.data, target_column=col)
         values = []
         for df in df_to_test:
@@ -119,8 +133,15 @@ class FeatureSelection:
         ).sort_values("Importance", ascending=False)
         return df
     
-    def plot_results(n_features: None):
+    def plot_results(self, n_features: None):
         """
         This function plots the results of the model.
         """
-        pass
+        if self.cache_history == 0:
+            self.get_metrics()
+        data = self.results
+        fig = px.bar(data, y="Importance", labels={"Importance": "Importance Score", "index": "Features tested"}, 
+             title="Feature Importance Plot", color="Importance", color_continuous_scale="Blues")
+        fig.update_traces(marker_line_color='black', marker_line_width=1.5)
+        fig.update_traces(hovertemplate='<b>%{y:.4f}</b><extra></extra>')
+        fig.show()  
