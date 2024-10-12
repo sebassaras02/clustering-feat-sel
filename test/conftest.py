@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.datasets import make_blobs
 
 
-from featclus import FeatureSelection
+from src.featclus.featclus import FeatureSelection
 
 
 @pytest.fixture
