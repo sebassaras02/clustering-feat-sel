@@ -1,10 +1,9 @@
 import pytest
-import numpy as np
 import pandas as pd
 from sklearn.datasets import make_blobs
 
 
-from src.featclus import FeatureSelection
+from featclus import FeatureSelection
 
 
 @pytest.fixture
