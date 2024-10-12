@@ -4,6 +4,8 @@ repos:
     hooks:
       - id: ruff
         types_or: [python, pyi, jupyter]
-        args: [--fix]
+        args: 
+          - --fix
+          - --exclude=src/featclus/__init__.py  # Ruta al archivo que quieres excluir
       - id: ruff-format
         types_or: [python, pyi, jupyter]
