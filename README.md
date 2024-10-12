@@ -33,25 +33,19 @@ pip install featureclus
 Here is a quick example of how to use **FeatureClus** with a clustering algorithm (e.g., KMeans):
 
 ```python
-from sklearn.cluster import KMeans
 from featureclus import FeatureSelection
+from sklearn.datasets import make_blobs
 
 # Sample DataFrame
-data = pd.DataFrame({
-    'A': [1, 2, 3, 4, 5],
-    'B': [5, 6, 7, 8, 9],
-    'C': [9, 8, 7, 6, 5]
-})
+data, labels = make_blobs(n_samples=10000, centers=7, n_features=15, random_state=42)
+df = pd.DataFrame(data, columns=[f"Feature_{i}" for i in range(15)])
 
 # Initialize the FeatureSelection
-fs = FeatureSelection(data)
+model = FeatureSelection(data=df, shifts=[1, 25, 50, 75, 100], n_jobs=-1)
 
-# Select features for clustering
-top_features = fs.select_top_features(k=2)
+# See how the metrics are important
+metrics2 = model2.get_metrics()
 
-# Perform clustering with the selected features
-model = KMeans(n_clusters=2)
-model.fit(top_features)
 ```
 
 ## 🛠️ Methods
@@ -59,14 +53,8 @@ model.fit(top_features)
 ### `get_metrics()`
 Returns metrics that assess how each feature contributes to clustering.
 
-### `select_top_features(k)`
-Selects the top `k` features based on their importance to clustering results.
-
-## 📋 Requirements
-- Python 3.7+
-- Pandas 1.2+
-- NumPy 1.19+
-- Scikit-learn 0.24+ (for clustering algorithms)
+### `plot_results(n_features)`
+Selects the top `n_features` features based on their importance to clustering results.
 
 
 ## ☕ Support the Project

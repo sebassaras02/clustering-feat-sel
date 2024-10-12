@@ -3,8 +3,8 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "FeatClus"
-version = "0.1.0"
+name = "featclus"
+version = "0.1.1"
 description = "This library is built to perform feature selection in clustering models"
 readme = "README.md"
 authors = [{ name = "Sebastian Sarasti", email = "sebitas.alejo@hotmail.com" }]

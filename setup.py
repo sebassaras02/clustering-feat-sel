@@ -10,8 +10,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="FeatClus",
-    version="0.1.0",
+    name="featclus",
+    version="0.1.1",
     description="A Python library for feature selection in clustering models",
     long_description=long_description,
     author="Sebastian Sarasti",
