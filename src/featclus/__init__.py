@@ -1,1 +1,1 @@
-from featclus import FeatureSelection
+from .featclus import FeatureSelection
