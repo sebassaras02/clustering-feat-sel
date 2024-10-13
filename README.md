@@ -25,7 +25,7 @@ This method ensures that the features are evaluated for their individual contrib
 To install the library, run the following command:
 
 ```bash
-pip install featureclus
+pip install featclus
 ```
 
 ## 📊 Example

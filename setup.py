@@ -11,7 +11,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="featclus",
-    version="0.1.1",
+    version="0.1.2",
     description="A Python library for feature selection in clustering models",
     long_description=long_description,
     author="Sebastian Sarasti",
@@ -25,5 +25,5 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.12.7",
+    python_requires=">=3.12.4",
 )
